@@ -2,15 +2,35 @@ package users
 
 import (
 	"backend/database"
+	"backend/middleware"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type UserInput struct {
 	Username string
 	Password string
+}
+
+type UserClaims struct {
+	Username string
+	jwt.StandardClaims
+}
+
+func generateJWT(username string) (string, error) {
+	claims := &UserClaims{
+		Username: username,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
+			IssuedAt:  time.Now().Unix(),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("secret"))
 }
 
 func CreateUser(c *fiber.Ctx) error {
@@ -73,15 +93,31 @@ func LoginUser(c *fiber.Ctx) error {
 	err := verifyPassword(user.HashedPassword, userInput.Password)
 
 	if err != nil {
-		c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 			"message": "wrong password",
 		})
-
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"user": "found"})
+	token, err := generateJWT(user.Username)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to generate JWT",
+		})
+	}
 
+	session, err := middleware.Store.Get(c)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to get session",
+		})
+	}
+
+	session.Set("token", token)
+	session.Save()
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"token": token,
+	})
 }
 
 func hashPassword(password string) (string, error) {
