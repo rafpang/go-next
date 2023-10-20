@@ -2,6 +2,7 @@ package main
 
 import (
 	"backend/database"
+	"backend/projects"
 	"log"
 
 	"backend/users"
@@ -25,6 +26,7 @@ func main() {
 	})
 
 	users.SetupRoutes(app)
+	projects.SetupRoutes(app)
 
 	err := app.Listen(":3333")
 
