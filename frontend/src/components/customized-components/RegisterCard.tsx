@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 
 export default function RegisterCard() {
   return (
-    <Card className="sm:w-[70vw] md:w-[40vw]">
+    <Card className="w-[400px] md:w-[50vw] shadow-lg mx-auto">
       <CardHeader className="flex justify-center items-center">
         <CardTitle>Register</CardTitle>
         <CardDescription>Sign into the App</CardDescription>
