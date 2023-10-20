@@ -113,7 +113,14 @@ func LoginUser(c *fiber.Ctx) error {
 	}
 
 	session.Set("token", token)
-	session.Save()
+
+	err = session.Save()
+
+	if err != nil {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"token": token,
