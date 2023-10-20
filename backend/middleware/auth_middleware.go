@@ -1,13 +1,17 @@
 package middleware
 
 import (
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/session"
 	"github.com/golang-jwt/jwt"
 )
 
+const FIFTEEN_MINUTES time.Duration = 15 * 60
+
 var Store = session.New(session.Config{
-	Expiration:     900,
+	Expiration:     FIFTEEN_MINUTES,
 	CookieHTTPOnly: true,
 	CookieSecure:   true,
 })
